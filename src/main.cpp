@@ -18,6 +18,13 @@ typedef struct {
 
 joystick_data joyData;
 
+//入力値vの絶対値がデッドゾーンの値dzより小さいかを判断している。
+//もし小さければ、値0を返し、そうでなければ入力値を返す。
+static inline int Deadzone(int v, int dz){
+  if (abs(v) < dz) return 0;
+  return v;
+}
+
 //モーター設定を目的とした関数
 void setMotor(int Right, int Left){
   //constrain関数は数値を特定の範囲内に収めるために使用する。
@@ -40,15 +47,28 @@ void setMotor(int Right, int Left){
     ledcWrite(3, 0);
   }else {
     ledcWrite(2, 0);
-    ledcWrite(3, Left);
+    ledcWrite(3, -Left);
   }
 }
 
 //OnDataRecv関数がESP-NOWでデータ受信
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
-  
+  memcpy(&joyData, data, sizeof(joyData));
+
+  //map関数を用いて0から4095相当から-255から255相当へ
   int xSpeed = map(joyData.x_direction, 0, 4095, -255, 255);
-  int xSpeed = map(joyData.y_direction, 0, 4095, -255, 255);
+  int ySpeed = map(joyData.y_direction, 0, 4095, -255, 255);
+
+  xSpeed = Deadzone(xSpeed, 20);
+  ySpeed = Deadzone(xSpeed, 20);
+
+  int rightMotor = ySpeed - xSpeed;
+  int leftMotor = ySpeed + xSpeed;
+
+  rightMotor = constrain(rightMotor, -255, 255);
+  leftMotor = constrain(leftMotor, -255, 255);
+
+  setMotor(rightMotor, leftMotor);
 }
 
 void setup() {
