@@ -33,20 +33,21 @@ void setMotor(int Right, int Left){
   Left = constrain(Left, -255, 255);
 
   //右モーター
+  //ledcWrite(チャンネル、)
   if (Right >= 0){
     ledcWrite(0, Right);
-    ledcWrite(1, 0);
+    ledcWrite(1, LOW);
   }else {
-    ledcWrite(0, 0);
+    ledcWrite(0, LOW);
     ledcWrite(1, -Right);
   }
 
   //左モーター
   if (Left >= 0){
     ledcWrite(2, Left);
-    ledcWrite(3, 0);
+    ledcWrite(3, LOW);
   }else {
-    ledcWrite(2, 0);
+    ledcWrite(2, LOW);
     ledcWrite(3, -Left);
   }
 }
@@ -59,8 +60,10 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   int xSpeed = map(joyData.x_direction, 0, 4095, -255, 255);
   int ySpeed = map(joyData.y_direction, 0, 4095, -255, 255);
 
+  //デッドゾーンの範囲指定
   xSpeed = Deadzone(xSpeed, 20);
   ySpeed = Deadzone(xSpeed, 20);
+
 
   int rightMotor = ySpeed - xSpeed;
   int leftMotor = ySpeed + xSpeed;
@@ -83,6 +86,17 @@ void setup() {
   pinMode(Right_2, OUTPUT);
   pinMode(Left_1, OUTPUT);
   pinMode(Left_2, OUTPUT);
+
+  ledcSetup(0, 1000, 8);
+  ledcSetup(1, 1000, 8);
+  ledcSetup(2, 1000, 8);
+  ledcSetup(3, 1000, 8);
+
+  //チャンネルピン指定
+  ledcAttachPin(Right_1, 0);
+  ledcAttachPin(Right_2, 1);
+  ledcAttachPin(Left_1, 2);
+  ledcAttachPin(Left_2, 3);
 
   //ESP-NOWを初期化処理
   WiFi.mode(WIFI_STA);
