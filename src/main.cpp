@@ -2,6 +2,7 @@
 #include <M5Stack.h>
 #include <esp_now.h>
 #include <WiFi.h>
+#include <esp_wifi.h>
 
 #define Right_1  1  //#define　プリプロセス命令
 #define Right_2  3
@@ -61,8 +62,8 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   int ySpeed = map(joyData.y_direction, 0, 4095, -255, 255);
 
   //デッドゾーンの範囲指定
-  xSpeed = Deadzone(xSpeed, 20);
-  ySpeed = Deadzone(xSpeed, 20);
+  xSpeed = Deadzone(xSpeed, 30);
+  ySpeed = Deadzone(xSpeed, 30);
 
 
   int rightMotor = ySpeed - xSpeed;
@@ -82,10 +83,10 @@ void setup() {
   Serial.begin(115200);
 
   //モータードライバー_PWM制御セットアップ
-  pinMode(Right_1, OUTPUT);
-  pinMode(Right_2, OUTPUT);
-  pinMode(Left_1, OUTPUT);
-  pinMode(Left_2, OUTPUT);
+  //pinMode(Right_1, OUTPUT);
+  //pinMode(Right_2, OUTPUT);
+  //pinMode(Left_1, OUTPUT);
+  //pinMode(Left_2, OUTPUT);
 
   ledcSetup(0, 1000, 8);
   ledcSetup(1, 1000, 8);
@@ -100,6 +101,9 @@ void setup() {
 
   //ESP-NOWを初期化処理
   WiFi.mode(WIFI_STA);
+  //WiFi.disconnect();
+  //esp_wifi_set_channel(0, WIFI_SECOND_CHAN_NONE);
+
   if(esp_now_init() != ESP_OK){
     Serial.println("Error initializing ESP-NOW");
     M5.Lcd.setTextSize(2.0);
