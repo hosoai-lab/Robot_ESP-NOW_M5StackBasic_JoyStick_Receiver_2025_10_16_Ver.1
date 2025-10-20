@@ -8,26 +8,47 @@
 #define Left_1  16
 #define Left_2  17
 
-int X_POS, Y_POS;
+//ジョイスティックデータ
+int X_POSITION, Y_POSITION;
 
-struct ControlData{
-  uint8_t x_direction;
-  uint8_t y_direction;
-};
+typedef struct {
+  int x_direction;
+  int y_direction;
+} joystick_data;
 
-ControlData pixel_settings = {
-  .x_direction = 1,
-  .y_direction = 2
-};
+joystick_data joyData;
+
+//モーター設定を目的とした関数
+void setMotor(int Right, int Left){
+  //constrain関数は数値を特定の範囲内に収めるために使用する。
+  //constrain関数　constrain(数値、最小値、最大値);
+  Right = constrain(Right, -255, 255);
+  Left = constrain(Left, -255, 255);
+
+  //右モーター
+  if (Right >= 0){
+    ledcWrite(0, Right);
+    ledcWrite(1, 0);
+  }else {
+    ledcWrite(0, 0);
+    ledcWrite(1, -Right);
+  }
+
+  //左モーター
+  if (Left >= 0){
+    ledcWrite(2, Left);
+    ledcWrite(3, 0);
+  }else {
+    ledcWrite(2, 0);
+    ledcWrite(3, Left);
+  }
+}
 
 //OnDataRecv関数がESP-NOWでデータ受信
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
-  X_POS =makeWord(data[1],data[0]);
-  Y_POS =makeWord(data[3],data[2]);
-  Serial.print("X_POS:");
-  Serial.print(X_POS);
-  Serial.print("Y_POS:");
-  Serial.print(Y_POS);
+  
+  int xSpeed = map(joyData.x_direction, 0, 4095, -255, 255);
+  int xSpeed = map(joyData.y_direction, 0, 4095, -255, 255);
 }
 
 void setup() {
@@ -37,16 +58,13 @@ void setup() {
 
   Serial.begin(115200);
 
+  //モータードライバー_PWM制御セットアップ
   pinMode(Right_1, OUTPUT);
   pinMode(Right_2, OUTPUT);
   pinMode(Left_1, OUTPUT);
   pinMode(Left_2, OUTPUT);
-  digitalWrite(Right_1, LOW);  //デジタルピンに高い電圧をかけるか、かけないか
-  digitalWrite(Right_2, LOW);
-  digitalWrite(Left_1, LOW);
-  digitalWrite(Left_2, LOW);
 
-  //ESP-NOWを初期化
+  //ESP-NOWを初期化処理
   WiFi.mode(WIFI_STA);
   if(esp_now_init() != ESP_OK){
     Serial.println("Error initializing ESP-NOW");
@@ -57,53 +75,10 @@ void setup() {
     return;
   }
   esp_now_register_recv_cb(OnDataRecv); 
+
+  delay(500);
 }
 
 void loop() {
-
-  int val_1 = analogRead(X_POS);
-  //前進、後退用プログラム
-  if(-20 <= val_1 && val_1 <= 30){
-    digitalWrite(Right_1,LOW);
-    digitalWrite(Right_2,LOW);
-    digitalWrite(Left_1,LOW);
-    digitalWrite(Left_2,LOW);
-  }else{
-    if  (val_1 > 30){
-    val_1 = val_1 - 31;
-    digitalWrite(Right_1,HIGH);
-    digitalWrite(Right_2,LOW);
-    digitalWrite(Left_1,LOW);
-    digitalWrite(Left_2,HIGH);
-  } else {
-    val_1 = 30 - val_1;
-    digitalWrite(Right_1,HIGH);
-    digitalWrite(Right_2,LOW);
-    digitalWrite(Left_1,LOW);
-    digitalWrite(Left_2,HIGH);
-    }
-  }
-
-  //右旋回、左旋回用プログラム
-  int val_2 = analogRead(Y_POS);
-  if(-30 <= val_2 && val_2 <= 30){
-    digitalWrite(Right_1,LOW);
-    digitalWrite(Right_2,LOW);
-    digitalWrite(Left_1,LOW);
-    digitalWrite(Left_2,LOW);
-  }else{
-    if (val_2 > 30){
-    val_2 = val_2 - 31;
-    digitalWrite(Right_1,HIGH);
-    digitalWrite(Right_2,LOW);
-    digitalWrite(Left_1,HIGH);
-    digitalWrite(Left_2,LOW);
-  }else{
-    val_2 = 30 - val_2;
-    digitalWrite(Right_1,LOW);
-    digitalWrite(Right_2,HIGH);
-    digitalWrite(Left_1,LOW);
-    digitalWrite(Left_2,HIGH);
-    }
-  }
+  
 }
