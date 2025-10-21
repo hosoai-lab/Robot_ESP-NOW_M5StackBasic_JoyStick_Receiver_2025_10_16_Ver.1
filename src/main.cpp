@@ -10,11 +10,10 @@
 #define Left_2  17
 
 //ジョイスティックデータ
-int X_POSITION, Y_POSITION;
-
 typedef struct {
-  int x_direction;
-  int y_direction;
+  int x;
+  int y;
+  uint8_t button;
 } joystick_data;
 
 joystick_data joyData;
@@ -37,18 +36,18 @@ void setMotor(int Right, int Left){
   //ledcWrite(チャンネル、)
   if (Right >= 0){
     ledcWrite(0, Right);
-    ledcWrite(1, LOW);
+    ledcWrite(1, 0);
   }else {
-    ledcWrite(0, LOW);
+    ledcWrite(0, 0);
     ledcWrite(1, -Right);
   }
 
   //左モーター
   if (Left >= 0){
     ledcWrite(2, Left);
-    ledcWrite(3, LOW);
+    ledcWrite(3, 0);
   }else {
-    ledcWrite(2, LOW);
+    ledcWrite(2, 0);
     ledcWrite(3, -Left);
   }
 }
@@ -58,13 +57,12 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   memcpy(&joyData, data, sizeof(joyData));
 
   //map関数を用いて0から4095相当から-255から255相当へ
-  int xSpeed = map(joyData.x_direction, 0, 4095, -255, 255);
-  int ySpeed = map(joyData.y_direction, 0, 4095, -255, 255);
+  int xSpeed = map(joyData.x, 0, 4095, -255, 255);
+  int ySpeed = map(joyData.y, 0, 4095, -255, 255);
 
   //デッドゾーンの範囲指定
-  xSpeed = Deadzone(xSpeed, 30);
-  ySpeed = Deadzone(xSpeed, 30);
-
+  xSpeed = Deadzone(xSpeed, 20);
+  ySpeed = Deadzone(ySpeed, 20);
 
   int rightMotor = ySpeed - xSpeed;
   int leftMotor = ySpeed + xSpeed;
@@ -83,10 +81,10 @@ void setup() {
   Serial.begin(115200);
 
   //モータードライバー_PWM制御セットアップ
-  //pinMode(Right_1, OUTPUT);
-  //pinMode(Right_2, OUTPUT);
-  //pinMode(Left_1, OUTPUT);
-  //pinMode(Left_2, OUTPUT);
+  pinMode(Right_1, OUTPUT);
+  pinMode(Right_2, OUTPUT);
+  pinMode(Left_1, OUTPUT);
+  pinMode(Left_2, OUTPUT);
 
   ledcSetup(0, 1000, 8);
   ledcSetup(1, 1000, 8);
@@ -101,8 +99,7 @@ void setup() {
 
   //ESP-NOWを初期化処理
   WiFi.mode(WIFI_STA);
-  //WiFi.disconnect();
-  //esp_wifi_set_channel(0, WIFI_SECOND_CHAN_NONE);
+  esp_wifi_set_channel(0, WIFI_SECOND_CHAN_NONE);
 
   if(esp_now_init() != ESP_OK){
     Serial.println("Error initializing ESP-NOW");
