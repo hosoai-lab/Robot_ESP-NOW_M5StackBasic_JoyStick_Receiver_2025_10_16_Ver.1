@@ -44,11 +44,11 @@ void setMotor(int Right, int Left){
 
   //左モーター
   if (Left >= 0){
-    ledcWrite(2, Left);
-    ledcWrite(3, 0);
-  }else {
     ledcWrite(2, 0);
-    ledcWrite(3, -Left);
+    ledcWrite(3, Left);
+  }else {
+    ledcWrite(2, -Left);
+    ledcWrite(3, 0);
   }
 }
 
