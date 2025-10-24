@@ -64,8 +64,8 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   xSpeed = Deadzone(xSpeed, 20);
   ySpeed = Deadzone(ySpeed, 20);
 
-  int rightMotor = ySpeed - xSpeed;
-  int leftMotor = ySpeed + xSpeed;
+  int rightMotor = ySpeed + xSpeed;
+  int leftMotor = ySpeed - xSpeed;
 
   rightMotor = constrain(rightMotor, -255, 255);
   leftMotor = constrain(leftMotor, -255, 255);
