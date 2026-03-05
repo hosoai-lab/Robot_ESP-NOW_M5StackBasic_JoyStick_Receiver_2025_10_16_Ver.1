@@ -1,1 +1,2 @@
 GitHubにコミットする際のミスで，最終ブランチ（Branch_2025_12_16)のみコミットが実行されています．
+最終版はPrototype_Robot_ESP-NOW_M5StackBasic_JoyStick_Receiver_2025_10_16_Ver.2を参照してください．
